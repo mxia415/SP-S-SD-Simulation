@@ -10,13 +10,14 @@
   <body>
     <header class="topbar">
       <div>
-        <p class="eyebrow">GL-3DPRT-SP/S · LEVEL 1 · MECHANICAL_HARD</p>
+        <p class="eyebrow">GL-3DPRT-SP/S · LEVEL 1 · CURRENT_PARAMETER_ENVELOPE</p>
         <h1>全路径动力学模拟</h1>
       </div>
       <div class="headline-status" aria-label="计算口径">
         <span>jerk 10,000 mm/s³</span>
         <span>a ≤ 2,000 mm/s²</span>
-        <span>91.913 m</span>
+        <span id="path-distance-badge">— m</span>
+        <span id="path-limit-badge">当前参数计算包络</span>
       </div>
     </header>
 
@@ -24,7 +25,7 @@
       <label>
         <span>IK 算法</span>
         <select id="algorithm-select">
-          <option value="greedy_continuity" selected>现有局部贪心解析 φ</option>
+          <option value="greedy_continuity" selected>局部贪心解析</option>
           <option value="balanced_posture">平衡姿态解析 φ</option>
           <option value="posture_priority">强姿态解析 φ</option>
         </select>
@@ -60,7 +61,7 @@
         <input id="time-slider" type="range" min="0" max="1" value="0" step="0.01" aria-label="路径时间" />
         <div class="timeline-labels">
           <output id="time-output">0.00 / 0.00 s</output>
-          <output id="path-output">0.000 / 91.913 m</output>
+          <output id="path-output">0.000 / — m</output>
           <output id="layer-output">第 1 层 · 路段 1</output>
         </div>
       </div>
@@ -74,8 +75,11 @@
             <h2 id="motion-title">机械臂与 TCP 全路径</h2>
           </div>
           <div class="legend compact">
+            <span><i class="swatch envelope"></i>当前参数计算包络</span>
+            <span><i class="swatch excluded"></i>隔离区间</span>
             <span><i class="swatch walked"></i>已走</span>
             <span><i class="swatch remaining"></i>未走</span>
+            <span><i class="swatch boundary"></i>层端点</span>
             <span><i class="swatch tcp"></i>TCP</span>
           </div>
         </div>
@@ -83,7 +87,7 @@
           <canvas id="motion-canvas" role="img" aria-label="三关节机械臂沿往复全路径运动动画"></canvas>
         </div>
         <div class="pose-readout" id="pose-readout">
-          <span>TCP X <b>2000.0</b> mm</span>
+          <span>TCP X <b>1771.0</b> mm</span>
           <span>TCP Z <b>0.0</b> mm</span>
           <span>Arm1 <b>—</b>°</span>
           <span>Arm2 <b>—</b>°</span>
@@ -116,7 +120,9 @@
     <footer>
       <p>
         额定电机扭矩按额定功率 / 3000 rpm 换算并以虚线标出；效率、高速扭矩包络仍为
-        <code>unknown_pending_supplier_data</code>，本动画不构成最终硬件认证。
+        <code>unknown_pending_supplier_data</code>。正式路径与包络均按当前参数计算；58点资料仅为
+        <code>unverified_reference</code>，不参与路径或正式图层；
+        本模拟不构成最终硬件认证。
       </p>
       <p id="data-source"></p>
     </footer>

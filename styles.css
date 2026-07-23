@@ -169,8 +169,18 @@ input[type="range"] {
 }
 
 .swatch.walked { background: var(--cyan); }
+.swatch.envelope {
+  height: 2px;
+  background: #b0b0b0;
+  outline: 1px solid rgba(176, 176, 176, 0.25);
+}
+.swatch.excluded {
+  height: 2px;
+  background: repeating-linear-gradient(90deg, #9467bd 0 4px, transparent 4px 7px);
+}
 .swatch.remaining { background: #b0b0b0; }
-.swatch.tcp { width: 7px; height: 7px; background: var(--amber); }
+.swatch.boundary { width: 7px; height: 7px; background: var(--blue); }
+.swatch.tcp { width: 7px; height: 7px; background: var(--red); }
 .swatch.demand { background: var(--blue); }
 .swatch.rated { background: var(--red); }
 .swatch.dashed { background: repeating-linear-gradient(90deg, var(--red) 0 5px, transparent 5px 8px); }

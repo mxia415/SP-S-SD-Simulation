@@ -6,7 +6,7 @@
   // so this standalone file:// animation does not introduce a second model.
   const BASE_JOINT = Object.freeze({ x: -450.742, z: 385.188 });
   const ARM_LENGTHS_MM = Object.freeze([3396.989, 3047.007, 2053.5640000000003]);
-  const TOOL_LENGTH_MM = 730;
+  const TOOL_LENGTH_MM = 747.536;
 
   function nextJoint(origin, absoluteAngleRad, lengthMm) {
     return {

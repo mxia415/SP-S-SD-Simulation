@@ -14,8 +14,11 @@
     axis: "#262626",
     text: "#595959",
     textStrong: "#262626",
+    envelope: "rgba(176, 176, 176, 0.72)",
+    excludedInterval: "#9467bd",
     pathRemaining: "rgba(127, 127, 127, 0.72)",
     pathWalked: "#1f77b4",
+    layerBoundary: "#1f77b4",
     tcp: "#d62728",
     torque: "#1f77b4",
     speed: "#ff7f0e",
@@ -60,6 +63,8 @@
     metricGrid: document.getElementById("metric-grid"),
     scaleOutput: document.getElementById("scale-output"),
     dataSource: document.getElementById("data-source"),
+    pathDistanceBadge: document.getElementById("path-distance-badge"),
+    pathLimitBadge: document.getElementById("path-limit-badge"),
   };
 
   let motionBackground = document.createElement("canvas");
@@ -69,8 +74,8 @@
 
   function algorithm() {
     return DATA.algorithms?.[state.algorithmKey] ?? {
-      label: "现有局部贪心解析 φ",
-      shortLabel: "现有贪心",
+      label: "局部贪心解析",
+      shortLabel: "局部贪心",
       scenarios: DATA.scenarios,
     };
   }
@@ -140,6 +145,36 @@
     return motorTorqueNmForHardware(forceN, armIndex, hardware());
   }
 
+  function currentParameterEnvelopePoints() {
+    if (
+      DATA.envelope?.id !== "current_parameter_envelope"
+      || DATA.envelope?.status !== "formal"
+    ) return [];
+    return (DATA.envelope?.pointsXZ || [])
+      .map((point) => ({ x: Number(point[0]), z: Number(point[1]) }))
+      .filter((point) => Number.isFinite(point.x) && Number.isFinite(point.z));
+  }
+
+  function excludedEnvelopeSegments() {
+    if (
+      DATA.envelope?.id !== "current_parameter_envelope"
+      || DATA.envelope?.status !== "formal"
+    ) return [];
+    return (DATA.envelope?.excludedDisconnectedIntervals || []).flatMap((section) => {
+      const z = Number(section?.zMm);
+      if (!Number.isFinite(z)) return [];
+      return (section?.intervals || []).map((interval) => ({
+        z,
+        minimumX: Number(interval?.minimumXmm),
+        maximumX: Number(interval?.maximumXmm),
+      })).filter((interval) => (
+        Number.isFinite(interval.minimumX)
+        && Number.isFinite(interval.maximumX)
+        && interval.maximumX > interval.minimumX
+      ));
+    });
+  }
+
   function roundedRect(context, x, y, width, height, radius) {
     const r = Math.min(radius, width / 2, height / 2);
     context.beginPath();
@@ -152,7 +187,19 @@
   }
 
   function motionTransform(width, height) {
-    const bounds = { xMin: -800, xMax: 6500, zMin: -400, zMax: 7000 };
+    const envelope = currentParameterEnvelopePoints();
+    const allX = [...DATA.path.x.map(Number), ...envelope.map((point) => point.x)];
+    const allZ = [...DATA.path.z.map(Number), ...envelope.map((point) => point.z)];
+    const minimumX = Math.min(...allX);
+    const maximumX = Math.max(...allX);
+    const minimumZ = Math.min(...allZ);
+    const maximumZ = Math.max(...allZ);
+    const bounds = {
+      xMin: Math.min(-800, Math.floor((minimumX - 500) / 1000) * 1000),
+      xMax: Math.max(6500, Math.ceil((maximumX + 250) / 1000) * 1000),
+      zMin: Math.min(-400, Math.floor((minimumZ - 250) / 1000) * 1000),
+      zMax: Math.max(7000, Math.ceil((maximumZ + 500) / 1000) * 1000),
+    };
     const padding = { left: 51, right: 24, top: 25, bottom: 39 };
     const scale = Math.min(
       (width - padding.left - padding.right) / (bounds.xMax - bounds.xMin),
@@ -185,7 +232,7 @@
 
     context.font = "10px 'DejaVu Sans', Arial, sans-serif";
     context.lineWidth = 1;
-    for (let x = 0; x <= 6000; x += 1000) {
+    for (let x = 0; x <= transform.bounds.xMax; x += 1000) {
       const top = transform.point(x, transform.bounds.zMax);
       const bottom = transform.point(x, transform.bounds.zMin);
       context.strokeStyle = x === 0 ? COLORS.gridMajor : COLORS.grid;
@@ -194,7 +241,7 @@
       context.textAlign = "center";
       context.fillText(String(x), bottom.x, target.height - 13);
     }
-    for (let z = 0; z <= 7000; z += 1000) {
+    for (let z = 0; z <= transform.bounds.zMax; z += 1000) {
       const left = transform.point(transform.bounds.xMin, z);
       const right = transform.point(transform.bounds.xMax, z);
       context.strokeStyle = z === 0 ? COLORS.gridMajor : COLORS.grid;
@@ -213,6 +260,42 @@
     context.fillText("Z / mm", 0, 0);
     context.restore();
 
+    const envelope = currentParameterEnvelopePoints();
+    if (envelope.length >= 3) {
+      context.save();
+      context.strokeStyle = COLORS.envelope;
+      context.fillStyle = "rgba(176, 176, 176, 0.055)";
+      context.lineWidth = 1.5;
+      context.setLineDash([]);
+      context.beginPath();
+      envelope.forEach((sample, index) => {
+        const point = transform.point(sample.x, sample.z);
+        if (index === 0) context.moveTo(point.x, point.y);
+        else context.lineTo(point.x, point.y);
+      });
+      context.closePath();
+      context.fill();
+      context.stroke();
+      context.restore();
+    }
+
+    const excludedSegments = excludedEnvelopeSegments();
+    if (excludedSegments.length > 0) {
+      context.save();
+      context.strokeStyle = COLORS.excludedInterval;
+      context.lineWidth = 2.5;
+      context.setLineDash([3, 3]);
+      for (const segment of excludedSegments) {
+        const start = transform.point(segment.minimumX, segment.z);
+        const end = transform.point(segment.maximumX, segment.z);
+        context.beginPath();
+        context.moveTo(start.x, start.y);
+        context.lineTo(end.x, end.y);
+        context.stroke();
+      }
+      context.restore();
+    }
+
     const path = DATA.path;
     context.strokeStyle = COLORS.pathRemaining;
     context.lineWidth = 2;
@@ -225,6 +308,20 @@
     }
     context.stroke();
     context.setLineDash([]);
+    for (const boundary of path.layerBoundaries || []) {
+      const boundaryX = Number(
+        boundary.farXMaxMm
+        ?? boundary.xMaxMm
+        ?? boundary.rightXmm
+        ?? boundary.maximumXmm
+      );
+      if (!Number.isFinite(boundaryX) || !Number.isFinite(Number(boundary.zMm))) continue;
+      const point = transform.point(boundaryX, Number(boundary.zMm));
+      context.fillStyle = COLORS.layerBoundary;
+      context.beginPath();
+      context.arc(point.x, point.y, 2.5, 0, Math.PI * 2);
+      context.fill();
+    }
   }
 
   function upperPathIndex(pathPositions, currentPosition) {
@@ -530,6 +627,13 @@
     state.time = Math.min(duration, Math.max(0, fraction * duration));
     elements.slider.max = String(duration);
     elements.slider.step = "0.01";
+    elements.pathDistanceBadge.textContent = `${(scenario().distanceMm / 1000).toFixed(3)} m`;
+    const envelopeMaximumZ = Math.max(
+      ...currentParameterEnvelopePoints().map((point) => point.z),
+    );
+    elements.pathLimitBadge.textContent = Number.isFinite(envelopeMaximumZ)
+      ? `计算包络 Z ${envelopeMaximumZ.toFixed(1)} mm`
+      : "待重建当前参数包络";
     elements.dataSource.textContent = (
       `算法：${algorithm().label}；数据目录：${scenario().sourceDirectory}；几何：${DATA.geometrySource}`
     );
