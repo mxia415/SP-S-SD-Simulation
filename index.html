@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>GL-3DPRT-SP/S 全路径动力学动画</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">GL-3DPRT-SP/S · LEVEL 1 · MECHANICAL_HARD</p>
+        <h1>全路径动力学动画</h1>
+        <p class="subtitle">X=2000→6000，上移 200，再返回；逐层往复直至机械限位</p>
+      </div>
+      <div class="headline-status" aria-label="计算口径">
+        <span>jerk 10,000 mm/s³</span>
+        <span>a ≤ 2,000 mm/s²</span>
+        <span>91.913 m</span>
+      </div>
+    </header>
+
+    <section class="controls" aria-label="动画控制">
+      <label>
+        <span>IK 算法</span>
+        <select id="algorithm-select">
+          <option value="greedy_continuity" selected>现有局部贪心解析 φ</option>
+          <option value="balanced_posture">平衡姿态解析 φ</option>
+          <option value="posture_priority">强姿态解析 φ</option>
+        </select>
+      </label>
+      <label>
+        <span>TCP 工况</span>
+        <select id="scenario-select">
+          <option value="150">XY / Z 150 mm/s</option>
+          <option value="200" selected>XY / Z 200 mm/s</option>
+          <option value="xy200-z50">XY 200 / Z 50 mm/s</option>
+        </select>
+      </label>
+      <label>
+        <span>硬件设定</span>
+        <select id="hardware-select">
+          <option value="1" selected>第一组</option>
+          <option value="2">第二组</option>
+        </select>
+      </label>
+      <button id="play-button" class="primary" type="button" aria-pressed="false">▶ 播放</button>
+      <button id="reset-button" type="button">↺ 归零</button>
+      <label>
+        <span>倍速</span>
+        <select id="rate-select">
+          <option value="1">1×</option>
+          <option value="5">5×</option>
+          <option value="10">10×</option>
+          <option value="20" selected>20×</option>
+          <option value="40">40×</option>
+        </select>
+      </label>
+      <div class="timeline">
+        <input id="time-slider" type="range" min="0" max="1" value="0" step="0.01" aria-label="路径时间" />
+        <div class="timeline-labels">
+          <output id="time-output">0.00 / 0.00 s</output>
+          <output id="path-output">0.000 / 91.913 m</output>
+          <output id="layer-output">第 1 层 · 路段 1</output>
+        </div>
+      </div>
+    </section>
+
+    <main class="workspace">
+      <section class="panel motion-panel" aria-labelledby="motion-title">
+        <div class="panel-heading">
+          <div>
+            <p class="kicker">三关节 X–Z 平面</p>
+            <h2 id="motion-title">机械臂与 TCP 全路径</h2>
+          </div>
+          <div class="legend compact">
+            <span><i class="swatch walked"></i>已走</span>
+            <span><i class="swatch remaining"></i>未走</span>
+            <span><i class="swatch tcp"></i>TCP</span>
+          </div>
+        </div>
+        <div class="canvas-frame motion-frame">
+          <canvas id="motion-canvas" role="img" aria-label="三关节机械臂沿往复全路径运动动画"></canvas>
+        </div>
+        <div class="pose-readout" id="pose-readout">
+          <span>TCP X <b>2000.0</b> mm</span>
+          <span>TCP Z <b>0.0</b> mm</span>
+          <span>Arm1 <b>—</b>°</span>
+          <span>Arm2 <b>—</b>°</span>
+          <span>Arm3 <b>—</b>°</span>
+        </div>
+      </section>
+
+      <section class="panel chart-panel" aria-labelledby="chart-title">
+        <div class="panel-heading">
+          <div>
+            <p class="kicker">同步动力学时程</p>
+            <h2 id="chart-title">电机轴等效需求扭矩与电缸线速度</h2>
+          </div>
+          <div class="legend compact">
+            <span><i class="swatch demand"></i>计算需求</span>
+            <span><i class="swatch rated dashed"></i>额定值</span>
+          </div>
+        </div>
+        <div class="chart-notice">
+          扭矩为最不利单电机轴 <strong>η=1 理论下限</strong>；Arm1/2 已计入现有 2% 负载分配偏差。
+          <span id="scale-output">三种算法、两组硬件、三种 TCP 工况和三臂共用固定量程。</span>
+        </div>
+        <div class="canvas-frame chart-frame">
+          <canvas id="chart-canvas" role="img" aria-label="三个关节电机扭矩与电缸线速度时程图"></canvas>
+        </div>
+        <div class="metric-grid" id="metric-grid" aria-live="polite"></div>
+      </section>
+    </main>
+
+    <footer>
+      <p>
+        额定电机扭矩按额定功率 / 3000 rpm 换算并以虚线标出；效率、高速扭矩包络仍为
+        <code>unknown_pending_supplier_data</code>，本动画不构成最终硬件认证。
+      </p>
+      <p id="data-source"></p>
+    </footer>
+
+    <noscript>需要启用 JavaScript 才能播放本地动画。</noscript>
+    <script src="data.js"></script>
+    <script src="model-lite.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
