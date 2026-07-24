@@ -42,6 +42,29 @@ h1, h2, p { margin: 0; }
 h1 { font-size: clamp(26px, 2.1vw, 38px); letter-spacing: -0.03em; line-height: 1.08; }
 h2 { font-size: 17px; letter-spacing: -0.01em; }
 
+.title-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+}
+
+.release-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.025em;
+  white-space: nowrap;
+}
+
+.release-meta strong {
+  color: var(--text);
+  font-weight: 750;
+}
+
 .eyebrow, .kicker {
   color: var(--text);
   font-size: 11px;
