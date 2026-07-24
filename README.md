@@ -2,7 +2,7 @@
 
 双击 `index.html` 即可离线运行，也可通过任意静态 HTTP 服务打开。
 
-数据由 `scripts/build-dynamics-animation.py` 从正式 nominal jerk 全路径 CSV 生成。
+数据由 `scripts/build-dynamics-animation.py` 从正式 nominal jerk 全路径 CSV 生成；公共数据写入 `data.js`，三种 IK 时程分别写入 `data-<algorithm>.js`，以满足 Cloudflare Pages 的 25 MiB 单文件限制。
 正式图层为当前参数计算包络；58点资料仅记录为 `unverified_reference`，不参与路径或正式图层。
 高位不相连可行区间单独标为“隔离区间”；路径只沿与底层连续相通的分量上升，不跨越空洞。
 算法下拉包含局部贪心、平衡姿态和强姿态三种严格解析方案；三者均命中同一 TCP 路径并使用相同当前参数口径。
