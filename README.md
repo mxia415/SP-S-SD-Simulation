@@ -8,34 +8,36 @@
 算法下拉包含局部贪心、平衡姿态和强姿态三种严格解析方案；三者均命中同一 TCP 路径并使用相同当前参数口径。
 详细数值和原因说明见 `algorithm-comparison.md`，对比图见 `algorithm-comparison.png`。
 电机扭矩为 η=1 的最不利单电机轴等效需求理论下限；不是厂家最终选型扭矩。
-右侧所有工况、硬件组和臂共用固定量程：扭矩 0～9 N·m，电缸线速度 -100～100 mm/s。
+新硬件额定/最大转矩来自用户提供的厂家表；额定转矩虚线为 6.36/6.36/4.90 N·m。最大转矩只作低速短时边界记录，不与6000 rpm组合使用。
+新硬件η=1理论额定推力为59.942/59.942/30.788 kN，实际电缸持续推力、综合效率和结构限值仍为 unknown_pending_supplier_data。
+右侧所有工况、硬件组和臂共用固定量程：扭矩 0～7 N·m，电缸线速度 -100～100 mm/s。
 
 ## 生成校验
 
 - 局部贪心 · XY / Z 150 mm/s: samples=25145, duration=1225.9938s, cylinder speed peaks=66.124,52.638,55.064 mm/s
--   第一组: eta=1 motor torque peaks=1.490,1.968,1.465 Nm
--   第二组: eta=1 motor torque peaks=1.590,2.099,1.465 Nm
+-   旧: eta=1 motor torque peaks=1.490,1.968,1.465 Nm
+-   新: eta=1 motor torque peaks=1.590,2.099,1.465 Nm
 - 局部贪心 · XY / Z 200 mm/s: samples=19260, duration=934.0072s, cylinder speed peaks=88.040,70.174,73.288 mm/s
--   第一组: eta=1 motor torque peaks=1.524,2.000,1.499 Nm
--   第二组: eta=1 motor torque peaks=1.625,2.134,1.499 Nm
+-   旧: eta=1 motor torque peaks=1.524,2.000,1.499 Nm
+-   新: eta=1 motor torque peaks=1.625,2.134,1.499 Nm
 - 局部贪心 · XY 200 / Z 50 mm/s: samples=21019, duration=1024.0707s, cylinder speed peaks=88.040,70.174,73.288 mm/s
--   第一组: eta=1 motor torque peaks=1.524,2.000,1.409 Nm
--   第二组: eta=1 motor torque peaks=1.625,2.134,1.409 Nm
+-   旧: eta=1 motor torque peaks=1.524,2.000,1.409 Nm
+-   新: eta=1 motor torque peaks=1.625,2.134,1.409 Nm
 - 平衡姿态 · XY / Z 150 mm/s: samples=25145, duration=1225.9938s, cylinder speed peaks=57.572,47.088,31.782 mm/s
--   第一组: eta=1 motor torque peaks=1.491,1.964,1.460 Nm
--   第二组: eta=1 motor torque peaks=1.590,2.095,1.460 Nm
+-   旧: eta=1 motor torque peaks=1.491,1.964,1.460 Nm
+-   新: eta=1 motor torque peaks=1.590,2.095,1.460 Nm
 - 平衡姿态 · XY / Z 200 mm/s: samples=19260, duration=934.0072s, cylinder speed peaks=75.817,62.805,42.394 mm/s
--   第一组: eta=1 motor torque peaks=1.524,1.996,1.499 Nm
--   第二组: eta=1 motor torque peaks=1.626,2.129,1.499 Nm
+-   旧: eta=1 motor torque peaks=1.524,1.996,1.499 Nm
+-   新: eta=1 motor torque peaks=1.626,2.129,1.499 Nm
 - 平衡姿态 · XY 200 / Z 50 mm/s: samples=21019, duration=1024.0707s, cylinder speed peaks=75.817,62.805,42.394 mm/s
--   第一组: eta=1 motor torque peaks=1.524,1.996,1.409 Nm
--   第二组: eta=1 motor torque peaks=1.626,2.129,1.409 Nm
+-   旧: eta=1 motor torque peaks=1.524,1.996,1.409 Nm
+-   新: eta=1 motor torque peaks=1.626,2.129,1.409 Nm
 - 强姿态 · XY / Z 150 mm/s: samples=25145, duration=1225.9938s, cylinder speed peaks=56.650,43.645,23.561 mm/s
--   第一组: eta=1 motor torque peaks=1.491,1.964,1.460 Nm
--   第二组: eta=1 motor torque peaks=1.590,2.095,1.460 Nm
+-   旧: eta=1 motor torque peaks=1.491,1.964,1.460 Nm
+-   新: eta=1 motor torque peaks=1.590,2.095,1.460 Nm
 - 强姿态 · XY / Z 200 mm/s: samples=19260, duration=934.0072s, cylinder speed peaks=73.499,58.195,31.416 mm/s
--   第一组: eta=1 motor torque peaks=1.525,1.997,1.499 Nm
--   第二组: eta=1 motor torque peaks=1.626,2.130,1.499 Nm
+-   旧: eta=1 motor torque peaks=1.525,1.997,1.499 Nm
+-   新: eta=1 motor torque peaks=1.626,2.130,1.499 Nm
 - 强姿态 · XY 200 / Z 50 mm/s: samples=21019, duration=1024.0707s, cylinder speed peaks=73.499,58.195,31.416 mm/s
--   第一组: eta=1 motor torque peaks=1.525,1.997,1.409 Nm
--   第二组: eta=1 motor torque peaks=1.626,2.130,1.409 Nm
+-   旧: eta=1 motor torque peaks=1.525,1.997,1.409 Nm
+-   新: eta=1 motor torque peaks=1.626,2.130,1.409 Nm

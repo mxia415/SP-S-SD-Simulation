@@ -41,8 +41,8 @@
       <label>
         <span>硬件设定</span>
         <select id="hardware-select">
-          <option value="1" selected>第一组</option>
-          <option value="2">第二组</option>
+          <option value="1" selected>旧</option>
+          <option value="2">新</option>
         </select>
       </label>
       <button id="play-button" class="primary" type="button" aria-pressed="false">▶ 播放</button>
@@ -109,6 +109,7 @@
         <div class="chart-notice">
           扭矩为最不利单电机轴 <strong>η=1 理论下限</strong>；Arm1/2 已计入现有 2% 负载分配偏差。
           <span id="scale-output">三种算法、两组硬件、三种 TCP 工况和三臂共用固定量程。</span>
+          <span id="hardware-output"></span>
         </div>
         <div class="canvas-frame chart-frame">
           <canvas id="chart-canvas" role="img" aria-label="三个关节电机扭矩与电缸线速度时程图"></canvas>
@@ -119,8 +120,9 @@
 
     <footer>
       <p>
-        额定电机扭矩按额定功率 / 3000 rpm 换算并以虚线标出；效率、高速扭矩包络仍为
-        <code>unknown_pending_supplier_data</code>。正式路径与包络均按当前参数计算；58点资料仅为
+        新硬件额定/最大转矩来自厂家表，红色虚线仅表示连续额定转矩；η=1理论推力由电机转矩、
+        减速比和10 mm/rev导程换算，不等同供应商认证的电缸推力。未确认的综合效率、实际持续/峰值推力、
+        最大转矩持续时间及高速转矩包络不在页面显示，也不进入能力判定。正式路径与包络均按当前参数计算；58点资料仅为
         <code>unverified_reference</code>，不参与路径或正式图层；
         本模拟不构成最终硬件认证。
       </p>
