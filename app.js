@@ -603,15 +603,6 @@
       const speed = frame.speed[armIndex];
       const torqueUtil = torque / arm.ratedTorqueNm;
       const speedUtil = Math.abs(speed) / arm.ratedSpeedMmS;
-      const maximumTorqueRow = hasFiniteNumber(arm.maximumTorqueNm)
-        ? `<div class="metric-row"><span>厂家 T额定 / 最大</span><b>${arm.ratedTorqueNm.toFixed(3)} / ${Number(arm.maximumTorqueNm).toFixed(3)} N·m</b></div>`
-        : `<div class="metric-row"><span>换算 T额定</span><b>${arm.ratedTorqueNm.toFixed(3)} N·m</b></div>`;
-      const maximumThrustRow = hasFiniteNumber(arm.theoreticalMaximumThrustEta1Kn)
-        ? `<div class="metric-row"><span>η=1 推力额定 / 最大</span><b>${arm.theoreticalRatedThrustEta1Kn.toFixed(3)} / ${Number(arm.theoreticalMaximumThrustEta1Kn).toFixed(3)} kN</b></div>`
-        : `<div class="metric-row"><span>η=1 理论额定推力</span><b>${arm.theoreticalRatedThrustEta1Kn.toFixed(3)} kN</b></div>`;
-      const certifiedForceRow = hasFiniteNumber(arm.certifiedContinuousForceKn)
-        ? `<div class="metric-row"><span>已确认缸持续额定力</span><b>${Number(arm.certifiedContinuousForceKn).toFixed(3)} kN</b></div>`
-        : "";
       const motorIdentity = [
         arm.motorModel === "unknown_pending_supplier_data" ? "" : arm.motorModel,
         `${arm.motorKw.toFixed(2)} kW`,
@@ -623,9 +614,6 @@
           <p class="motor-model">${motorIdentity}</p>
           <div class="metric-row"><span>|T轴| / 额定</span><b class="${torqueUtil > 1 ? "over" : "ok"}">${torque.toFixed(3)} / ${arm.ratedTorqueNm.toFixed(3)} N·m</b></div>
           <div class="metric-row"><span>v缸 / ±额定</span><b class="${speedUtil > 1 ? "over" : "ok"}">${speed.toFixed(2)} / ±${arm.ratedSpeedMmS.toFixed(0)} mm/s</b></div>
-          ${maximumTorqueRow}
-          ${maximumThrustRow}
-          ${certifiedForceRow}
           <div class="metric-row"><span>瞬时利用率</span><b class="${Math.max(torqueUtil, speedUtil) > 1 ? "over" : "ok"}">T ${(torqueUtil * 100).toFixed(1)}% · v ${(speedUtil * 100).toFixed(1)}%</b></div>
         </article>`;
     }).join("");
