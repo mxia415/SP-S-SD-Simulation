@@ -37,8 +37,8 @@
   });
   const state = {
     algorithmKey: "posture_priority",
-    scenarioKey: "200",
-    hardwareKey: "1",
+    scenarioKey: "xy200-z50",
+    hardwareKey: "2",
     time: 0,
     rate: 20,
     playing: false,
