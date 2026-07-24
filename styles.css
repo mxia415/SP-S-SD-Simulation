@@ -211,12 +211,6 @@ canvas { display: block; width: 100%; height: 100%; }
   color: #1f77b4;
 }
 
-.chart-notice #hardware-output {
-  display: block;
-  margin-top: 3px;
-  color: var(--muted);
-}
-
 .pose-readout {
   display: grid;
   grid-template-columns: repeat(5, 1fr);

@@ -62,7 +62,6 @@
     poseReadout: document.getElementById("pose-readout"),
     metricGrid: document.getElementById("metric-grid"),
     scaleOutput: document.getElementById("scale-output"),
-    hardwareOutput: document.getElementById("hardware-output"),
     dataSource: document.getElementById("data-source"),
     pathDistanceBadge: document.getElementById("path-distance-badge"),
     pathLimitBadge: document.getElementById("path-limit-badge"),
@@ -144,31 +143,6 @@
 
   function motorTorqueNm(forceN, armIndex) {
     return motorTorqueNmForHardware(forceN, armIndex, hardware());
-  }
-
-  function hasFiniteNumber(value) {
-    return value !== null && value !== "" && Number.isFinite(Number(value));
-  }
-
-  function updateHardwareSummary() {
-    const selected = hardware();
-    const details = selected.arms.map((arm) => {
-      const maximumTorque = hasFiniteNumber(arm.maximumTorqueNm)
-        ? ` / 最大 ${Number(arm.maximumTorqueNm).toFixed(2)}`
-        : "";
-      const maximumRpm = hasFiniteNumber(arm.motorMaximumRpm)
-        ? ` / 最高 ${Number(arm.motorMaximumRpm).toFixed(0)}`
-        : "";
-      const model = arm.motorModel === "unknown_pending_supplier_data"
-        ? ""
-        : ` ${arm.motorModel}`;
-      return (
-        `${arm.label}${model}：${arm.motorKw.toFixed(2)} kW，`
-        + `T额定 ${arm.ratedTorqueNm.toFixed(2)}${maximumTorque} N·m，`
-        + `n额定 ${arm.motorRpm.toFixed(0)}${maximumRpm} rpm`
-      );
-    });
-    elements.hardwareOutput.textContent = `${selected.label}：${details.join("；")}。`;
   }
 
   function currentParameterEnvelopePoints() {
@@ -669,7 +643,6 @@
     elements.dataSource.textContent = (
       `算法：${algorithm().label}；数据目录：${scenario().sourceDirectory}；几何：${DATA.geometrySource}`
     );
-    updateHardwareSummary();
     buildChartBackground();
     paint();
   }
@@ -691,7 +664,6 @@
   });
   elements.hardware.addEventListener("change", () => {
     state.hardwareKey = elements.hardware.value;
-    updateHardwareSummary();
     buildChartBackground();
     paint();
   });

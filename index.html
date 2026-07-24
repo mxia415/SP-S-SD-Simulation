@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light" />
     <title>GL-3DPRT-SP/S 全路径动力学模拟</title>
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="styles.css?v=20260724-stable-hardware-layout" />
   </head>
   <body>
     <header class="topbar">
@@ -109,7 +109,6 @@
         <div class="chart-notice">
           扭矩为最不利单电机轴 <strong>η=1 理论下限</strong>；Arm1/2 已计入现有 2% 负载分配偏差。
           <span id="scale-output">三种算法、两组硬件、三种 TCP 工况和三臂共用固定量程。</span>
-          <span id="hardware-output"></span>
         </div>
         <div class="canvas-frame chart-frame">
           <canvas id="chart-canvas" role="img" aria-label="三个关节电机扭矩与电缸线速度时程图"></canvas>
@@ -135,6 +134,6 @@
     <script src="data-balanced_posture.js"></script>
     <script src="data-posture_priority.js"></script>
     <script src="model-lite.js"></script>
-    <script src="app.js"></script>
+    <script src="app.js?v=20260724-stable-hardware-layout"></script>
   </body>
 </html>
