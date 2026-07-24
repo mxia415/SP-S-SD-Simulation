@@ -36,7 +36,7 @@
     speedMax: Number(DATA.chartScale?.speedMaxMmS ?? 120),
   });
   const state = {
-    algorithmKey: "greedy_continuity",
+    algorithmKey: "posture_priority",
     scenarioKey: "200",
     hardwareKey: "1",
     time: 0,
@@ -74,8 +74,8 @@
 
   function algorithm() {
     return DATA.algorithms?.[state.algorithmKey] ?? {
-      label: "局部贪心解析",
-      shortLabel: "局部贪心",
+      label: "强姿态解析 φ",
+      shortLabel: "强姿态",
       scenarios: DATA.scenarios,
     };
   }
