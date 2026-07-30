@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light" />
     <title>GL-3DPRT-SP/S 全路径动力学模拟</title>
-    <link rel="stylesheet" href="styles.css?v=20260724-release-meta" />
+    <link rel="stylesheet" href="styles.css?v=20260730-actual-lingzhu-ik" />
   </head>
   <body>
     <header class="topbar">
@@ -14,9 +14,9 @@
         <div class="title-row">
           <h1>全路径动力学模拟</h1>
           <p class="release-meta" id="release-meta" aria-label="版本与版权信息">
-            <span>V2026.07.24</span>
+            <span>V2026.07.30</span>
             <span aria-hidden="true">·</span>
-            <time datetime="2026-07-24T12:46:00+08:00">2026-07-24 12:46 CST</time>
+            <time datetime="2026-07-30T12:57:00+08:00">2026-07-30 12:57 CST</time>
             <span aria-hidden="true">·</span>
             <strong>©Ming Xia</strong>
           </p>
@@ -37,6 +37,7 @@
           <option value="greedy_continuity">局部贪心解析</option>
           <option value="balanced_posture">平衡姿态解析 φ</option>
           <option value="posture_priority" selected>强姿态解析 φ</option>
+          <option value="actual_lingzhu_ik">实际凌蛛IK</option>
         </select>
       </label>
       <label>
@@ -117,7 +118,7 @@
         </div>
         <div class="chart-notice">
           扭矩为最不利单电机轴 <strong>η=1 理论下限</strong>；Arm1/2 已计入现有 2% 负载分配偏差。
-          <span id="scale-output">三种算法、两组硬件、三种 TCP 工况和三臂共用固定量程。</span>
+          <span id="scale-output">四种算法、两组硬件、三种 TCP 工况和三臂共用固定量程。</span>
         </div>
         <div class="canvas-frame chart-frame">
           <canvas id="chart-canvas" role="img" aria-label="三个关节电机扭矩与电缸线速度时程图"></canvas>
@@ -142,7 +143,8 @@
     <script src="data-greedy_continuity.js"></script>
     <script src="data-balanced_posture.js"></script>
     <script src="data-posture_priority.js"></script>
+    <script src="data-actual_lingzhu_ik.js"></script>
     <script src="model-lite.js"></script>
-    <script src="app.js?v=20260724-default-combination"></script>
+    <script src="app.js?v=20260730-actual-lingzhu-ik"></script>
   </body>
 </html>

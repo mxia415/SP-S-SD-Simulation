@@ -640,9 +640,24 @@
     elements.pathLimitBadge.textContent = Number.isFinite(envelopeMaximumZ)
       ? `计算包络 Z ${envelopeMaximumZ.toFixed(1)} mm`
       : "待重建当前参数包络";
+    const controlDiagnostics = algorithm().controlDiagnostics;
+    const stepLimitOverrideCount = Object.values(
+      controlDiagnostics?.stepLimitOverrideCountByJoint || {},
+    ).reduce((sum, value) => sum + Number(value || 0), 0);
+    const overrideSummary = stepLimitOverrideCount > 0
+      ? `；门控空间步长偏好安全降级 ${stepLimitOverrideCount.toLocaleString("zh-CN")} 个关节步`
+      : "";
     elements.dataSource.textContent = (
-      `算法：${algorithm().label}；数据目录：${scenario().sourceDirectory}；几何：${DATA.geometrySource}`
+      `算法：${algorithm().label}；数据目录：${scenario().sourceDirectory}`
+      + `；几何：${DATA.geometrySource}${overrideSummary}`
     );
+    elements.dataSource.classList.toggle(
+      "control-override",
+      stepLimitOverrideCount > 0,
+    );
+    elements.dataSource.title = stepLimitOverrideCount > 0
+      ? "红字表示为保持连续 TCP、关节、电缸和固定连杆分支可行性，个别 Active DLS 空间步长偏好采用了明确记录的安全降级；物理硬限位仍已逐帧校验。"
+      : "";
     buildChartBackground();
     paint();
   }
@@ -691,7 +706,8 @@
   resizeObserver.observe(elements.chartCanvas.parentElement);
 
   elements.scaleOutput.textContent = (
-    `三种算法统一量程：|T轴| ${SHARED_CHART_SCALE.torqueMin.toFixed(0)}–${SHARED_CHART_SCALE.torqueMax.toFixed(0)} N·m；`
+    `${Object.keys(DATA.algorithms || {}).length}种算法统一量程：`
+    + `|T轴| ${SHARED_CHART_SCALE.torqueMin.toFixed(0)}–${SHARED_CHART_SCALE.torqueMax.toFixed(0)} N·m；`
     + `v缸 ${SHARED_CHART_SCALE.speedMin.toFixed(0)}–+${SHARED_CHART_SCALE.speedMax.toFixed(0)} mm/s。`
   );
   elements.algorithm.value = state.algorithmKey;

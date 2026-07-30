@@ -309,6 +309,14 @@ footer {
 
 footer p { max-width: 780px; }
 footer code { color: var(--text); }
+footer .control-override { color: var(--red); font-weight: 600; }
+#data-source {
+  min-width: 0;
+  overflow: hidden;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 @media (min-width: 1181px) {
   html, body {
@@ -380,4 +388,5 @@ footer code { color: var(--text); }
   .pose-readout { grid-template-columns: repeat(2, 1fr); }
   .metric-grid { grid-template-columns: 1fr; }
   footer { padding: 4px 16px 20px; flex-direction: column; gap: 8px; }
+  #data-source { overflow: visible; text-align: left; white-space: normal; }
 }
