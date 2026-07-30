@@ -2,7 +2,8 @@
 
 双击 `index.html` 即可离线运行，也可通过任意静态 HTTP 服务打开。
 
-数据由 `scripts/build-dynamics-animation.py` 从正式 nominal jerk 全路径 CSV 生成；公共数据写入 `data.js`，四种 IK 时程分别写入 `data-<algorithm>.js`，以满足 Cloudflare Pages 的 25 MiB 单文件限制。
+数据由 `scripts/build-dynamics-animation.py` 从正式 nominal jerk 全路径 CSV 生成；公共数据与四种 IK 元数据写入 `data.js`；各算法、各工况时程分别写入带内容哈希的 `chunks/<algorithm>-<scenario>.<hash>.js`，网页仅在需要时加载，以缩短首屏等待并满足 Cloudflare Pages 的 25 MiB 单文件限制。
+页面启动后仅按 `scenarioAssets` 映射加载默认强姿态解析 φ / XY 200、Z 50 mm/s 数据块；切换算法或 TCP 工况时再加载相应数据块。
 正式图层为当前参数计算包络；58点资料仅记录为 `unverified_reference`，不参与路径或正式图层。
 高位不相连可行区间单独标为“隔离区间”；路径只沿与底层连续相通的分量上升，不跨越空洞。
 算法下拉包含局部贪心、平衡姿态、强姿态三种解析对照方案及实际凌蛛IK；实际凌蛛IK使用臂1延迟释放 Active DLS 预测并投影到严格解析可行姿态。四者均命中同一 TCP 路径并使用相同当前参数口径。

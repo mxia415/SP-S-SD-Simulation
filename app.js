@@ -45,6 +45,11 @@
     lastTimestamp: null,
     lastPaintTimestamp: 0,
   };
+  const scenarioLoadPromises = new Map();
+  let lastScenarioLoadError = null;
+  let selectionRequestToken = 0;
+  let loadingScenario = false;
+  let animationLoopStarted = false;
 
   const elements = {
     algorithm: document.getElementById("algorithm-select"),
@@ -72,15 +77,120 @@
   let chartLayouts = [];
   let resizeQueued = false;
 
-  function algorithm() {
-    return DATA.algorithms?.[state.algorithmKey] ?? {
-      label: "强姿态解析 φ",
-      shortLabel: "强姿态",
-      scenarios: DATA.scenarios,
-    };
+  function algorithmFor(key) {
+    const selected = DATA.algorithms?.[key];
+    if (!selected) throw new Error(`未知 IK 算法：${key}`);
+    return selected;
   }
-  function scenario() { return algorithm().scenarios[state.scenarioKey]; }
+  function algorithm() { return algorithmFor(state.algorithmKey); }
+  function scenarioFor(algorithmKey, scenarioKey) {
+    return algorithmFor(algorithmKey).scenarios?.[scenarioKey] ?? null;
+  }
+  function scenario() {
+    const selected = scenarioFor(state.algorithmKey, state.scenarioKey);
+    if (!selected) {
+      throw new Error(`工况数据尚未加载：${state.algorithmKey}/${state.scenarioKey}`);
+    }
+    return selected;
+  }
+  function hasCurrentScenario() {
+    return Boolean(scenarioFor(state.algorithmKey, state.scenarioKey));
+  }
   function hardware() { return DATA.hardwareSets[state.hardwareKey]; }
+
+  function loadedScenarioKeys() {
+    return Object.entries(DATA.algorithms || {}).flatMap(([algorithmKey, record]) => (
+      Object.keys(record.scenarios || {}).map((scenarioKey) => `${algorithmKey}/${scenarioKey}`)
+    )).sort();
+  }
+
+  function pendingScenarioKeys() {
+    return [...scenarioLoadPromises.keys()].sort();
+  }
+
+  window.SPS_DYNAMICS_LAZY_LOADING = Object.freeze({
+    loadedScenarioKeys,
+    pendingScenarioKeys,
+    lastError: () => lastScenarioLoadError,
+    isLoading: () => loadingScenario,
+    activeScenarioKey: () => (
+      hasCurrentScenario() ? `${state.algorithmKey}/${state.scenarioKey}` : null
+    ),
+  });
+
+  function ensureScenarioLoaded(algorithmKey, scenarioKey) {
+    const targetAlgorithm = algorithmFor(algorithmKey);
+    if (targetAlgorithm.scenarios?.[scenarioKey]) {
+      return Promise.resolve(targetAlgorithm.scenarios[scenarioKey]);
+    }
+    const loadKey = `${algorithmKey}/${scenarioKey}`;
+    if (scenarioLoadPromises.has(loadKey)) return scenarioLoadPromises.get(loadKey);
+    const assetPath = targetAlgorithm.scenarioAssets?.[scenarioKey];
+    if (
+      typeof assetPath !== "string"
+      || !/^chunks\/[a-z0-9_.-]+\.js$/i.test(assetPath)
+    ) {
+      return Promise.reject(new Error(`未找到工况数据文件：${loadKey}`));
+    }
+
+    const loadPromise = new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = new URL(assetPath, document.baseURI).href;
+      script.async = true;
+      script.dataset.scenarioKey = loadKey;
+      script.addEventListener("load", () => {
+        const loaded = scenarioFor(algorithmKey, scenarioKey);
+        if (loaded) resolve(loaded);
+        else reject(new Error(`工况数据未完成注册：${loadKey}`));
+      }, { once: true });
+      script.addEventListener("error", () => {
+        script.remove();
+        reject(new Error(`工况数据加载失败：${loadKey}`));
+      }, { once: true });
+      document.head.appendChild(script);
+    }).finally(() => {
+      scenarioLoadPromises.delete(loadKey);
+    });
+    scenarioLoadPromises.set(loadKey, loadPromise);
+    return loadPromise;
+  }
+
+  function updateControlAvailability() {
+    const ready = hasCurrentScenario();
+    elements.algorithm.disabled = loadingScenario;
+    elements.scenario.disabled = loadingScenario;
+    elements.hardware.disabled = loadingScenario || !ready;
+    elements.rate.disabled = loadingScenario || !ready;
+    elements.play.disabled = loadingScenario || !ready;
+    elements.reset.disabled = loadingScenario || !ready;
+    elements.slider.disabled = loadingScenario || !ready;
+  }
+
+  function setScenarioLoading(loading, targetLabel = "") {
+    loadingScenario = Boolean(loading);
+    document.body.classList.toggle("scenario-loading", loadingScenario);
+    document.body.setAttribute("aria-busy", String(loadingScenario));
+    if (loadingScenario) {
+      setPlaying(false);
+      elements.play.textContent = "加载中…";
+      elements.dataSource.textContent = targetLabel
+        ? `正在加载：${targetLabel}`
+        : "正在加载工况数据…";
+      elements.dataSource.classList.remove("control-override", "load-error");
+      elements.dataSource.title = "";
+    } else {
+      elements.play.textContent = state.playing ? "❚❚ 暂停" : "▶ 播放";
+    }
+    updateControlAvailability();
+  }
+
+  function showScenarioLoadError(error) {
+    lastScenarioLoadError = error instanceof Error ? error.message : String(error);
+    elements.dataSource.textContent = `${lastScenarioLoadError}。请检查网络后重试。`;
+    elements.dataSource.classList.remove("control-override");
+    elements.dataSource.classList.add("load-error");
+    elements.dataSource.title = lastScenarioLoadError;
+  }
 
   function setCanvasResolution(canvas) {
     const rect = canvas.getBoundingClientRect();
@@ -651,6 +761,7 @@
       `算法：${algorithm().label}；数据目录：${scenario().sourceDirectory}`
       + `；几何：${DATA.geometrySource}${overrideSummary}`
     );
+    elements.dataSource.classList.remove("load-error");
     elements.dataSource.classList.toggle(
       "control-override",
       stepLimitOverrideCount > 0,
@@ -664,18 +775,51 @@
 
   function rebuildAll() {
     resizeQueued = false;
+    if (!hasCurrentScenario()) return;
     buildMotionBackground();
     buildChartBackground();
     paint();
   }
 
+  function startAnimationLoop() {
+    if (animationLoopStarted) return;
+    animationLoopStarted = true;
+    requestAnimationFrame(animationLoop);
+  }
+
+  async function activateSelection(algorithmKey, scenarioKey, preserveFraction) {
+    const requestToken = ++selectionRequestToken;
+    const previousAlgorithmKey = state.algorithmKey;
+    const previousScenarioKey = state.scenarioKey;
+    const targetAlgorithm = algorithmFor(algorithmKey);
+    const targetLabel = `${targetAlgorithm.label} / ${scenarioKey}`;
+    setScenarioLoading(true, targetLabel);
+    try {
+      await ensureScenarioLoaded(algorithmKey, scenarioKey);
+      if (requestToken !== selectionRequestToken) return;
+      state.algorithmKey = algorithmKey;
+      state.scenarioKey = scenarioKey;
+      elements.algorithm.value = algorithmKey;
+      elements.scenario.value = scenarioKey;
+      lastScenarioLoadError = null;
+      buildMotionBackground();
+      configureScenario(preserveFraction);
+      setScenarioLoading(false);
+      startAnimationLoop();
+    } catch (error) {
+      if (requestToken !== selectionRequestToken) return;
+      elements.algorithm.value = previousAlgorithmKey;
+      elements.scenario.value = previousScenarioKey;
+      setScenarioLoading(false);
+      showScenarioLoadError(error);
+    }
+  }
+
   elements.algorithm.addEventListener("change", () => {
-    state.algorithmKey = elements.algorithm.value;
-    configureScenario(true);
+    void activateSelection(elements.algorithm.value, elements.scenario.value, true);
   });
   elements.scenario.addEventListener("change", () => {
-    state.scenarioKey = elements.scenario.value;
-    configureScenario(true);
+    void activateSelection(elements.algorithm.value, elements.scenario.value, true);
   });
   elements.hardware.addEventListener("change", () => {
     state.hardwareKey = elements.hardware.value;
@@ -714,6 +858,5 @@
   elements.scenario.value = state.scenarioKey;
   elements.hardware.value = state.hardwareKey;
   elements.rate.value = String(state.rate);
-  configureScenario(false);
-  requestAnimationFrame(animationLoop);
+  void activateSelection(state.algorithmKey, state.scenarioKey, false);
 })();

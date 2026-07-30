@@ -128,6 +128,13 @@ select, button {
 
 button:hover, select:hover { border-color: #595959; }
 
+button:disabled,
+select:disabled,
+input:disabled {
+  cursor: wait;
+  opacity: 0.58;
+}
+
 button.primary {
   border-color: #1f77b4;
   background: #1f77b4;
@@ -310,6 +317,7 @@ footer {
 footer p { max-width: 780px; }
 footer code { color: var(--text); }
 footer .control-override { color: var(--red); font-weight: 600; }
+footer .load-error { color: var(--red); font-weight: 600; }
 #data-source {
   min-width: 0;
   overflow: hidden;

@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light" />
     <title>GL-3DPRT-SP/S 全路径动力学模拟</title>
-    <link rel="stylesheet" href="styles.css?v=20260730-actual-lingzhu-ik" />
+    <link rel="stylesheet" href="styles.css?v=20260730-scenario-lazy-load" />
   </head>
-  <body>
+  <body aria-busy="true">
     <header class="topbar">
       <div>
         <p class="eyebrow">GL-3DPRT-SP/S · LEVEL 1 · CURRENT_PARAMETER_ENVELOPE</p>
@@ -33,7 +33,7 @@
     <section class="controls" aria-label="动画控制">
       <label>
         <span>IK 算法</span>
-        <select id="algorithm-select">
+        <select id="algorithm-select" disabled>
           <option value="greedy_continuity">局部贪心解析</option>
           <option value="balanced_posture">平衡姿态解析 φ</option>
           <option value="posture_priority" selected>强姿态解析 φ</option>
@@ -42,7 +42,7 @@
       </label>
       <label>
         <span>TCP 工况</span>
-        <select id="scenario-select">
+        <select id="scenario-select" disabled>
           <option value="150">XY / Z 150 mm/s</option>
           <option value="200">XY / Z 200 mm/s</option>
           <option value="xy200-z50" selected>XY 200 / Z 50 mm/s</option>
@@ -50,16 +50,16 @@
       </label>
       <label>
         <span>硬件设定</span>
-        <select id="hardware-select">
+        <select id="hardware-select" disabled>
           <option value="1">旧</option>
           <option value="2" selected>新</option>
         </select>
       </label>
-      <button id="play-button" class="primary" type="button" aria-pressed="false">▶ 播放</button>
-      <button id="reset-button" type="button">↺ 归零</button>
+      <button id="play-button" class="primary" type="button" aria-pressed="false" disabled>加载中…</button>
+      <button id="reset-button" type="button" disabled>↺ 归零</button>
       <label>
         <span>倍速</span>
-        <select id="rate-select">
+        <select id="rate-select" disabled>
           <option value="1">1×</option>
           <option value="5">5×</option>
           <option value="10">10×</option>
@@ -68,7 +68,7 @@
         </select>
       </label>
       <div class="timeline">
-        <input id="time-slider" type="range" min="0" max="1" value="0" step="0.01" aria-label="路径时间" />
+        <input id="time-slider" type="range" min="0" max="1" value="0" step="0.01" aria-label="路径时间" disabled />
         <div class="timeline-labels">
           <output id="time-output">0.00 / 0.00 s</output>
           <output id="path-output">0.000 / — m</output>
@@ -140,11 +140,7 @@
 
     <noscript>需要启用 JavaScript 才能播放本地动画。</noscript>
     <script src="data.js"></script>
-    <script src="data-greedy_continuity.js"></script>
-    <script src="data-balanced_posture.js"></script>
-    <script src="data-posture_priority.js"></script>
-    <script src="data-actual_lingzhu_ik.js"></script>
     <script src="model-lite.js"></script>
-    <script src="app.js?v=20260730-actual-lingzhu-ik"></script>
+    <script src="app.js?v=20260730-scenario-lazy-load"></script>
   </body>
 </html>
