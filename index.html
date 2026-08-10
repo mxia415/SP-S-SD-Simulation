@@ -5,18 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light" />
     <title>GL-3DPRT-SP/S 全路径动力学模拟</title>
-    <link rel="stylesheet" href="styles.css?v=20260806-actuator-mass" />
+    <link rel="stylesheet" href="styles.css?v=20260810-1644-suspected-default" />
   </head>
   <body aria-busy="true">
     <header class="topbar">
       <div>
-        <p class="eyebrow">GL-3DPRT-SP/S · LEVEL 1 · CURRENT_PARAMETER_ENVELOPE</p>
+        <p class="eyebrow">GL-3DPRT-SP/S · LEVEL 1 · FOUR_IK_COMMON_INTERSECTION</p>
         <div class="title-row">
           <h1>全路径动力学模拟</h1>
           <p class="release-meta" id="release-meta" aria-label="版本与版权信息">
-            <span>V2026.08.06</span>
+            <span>V2026.08.10</span>
             <span aria-hidden="true">·</span>
-            <time datetime="2026-08-06T16:42:00+08:00">2026-08-06 16:42 CST</time>
+            <time datetime="2026-08-10T16:44:00+08:00">2026-08-10 16:44 CST</time>
             <span aria-hidden="true">·</span>
             <strong>©Ming Xia</strong>
           </p>
@@ -26,7 +26,7 @@
         <span>jerk 10,000 mm/s³</span>
         <span>a ≤ 2,000 mm/s²</span>
         <span id="path-distance-badge">— m</span>
-        <span id="path-limit-badge">当前参数计算包络</span>
+        <span id="path-limit-badge">四种IK共同可达交集</span>
       </div>
     </header>
 
@@ -36,8 +36,8 @@
         <select id="algorithm-select" disabled>
           <option value="greedy_continuity">局部贪心解析</option>
           <option value="balanced_posture">平衡姿态解析 φ</option>
-          <option value="posture_priority" selected>强姿态解析 φ</option>
-          <option value="actual_lingzhu_ik">实际凌蛛IK</option>
+          <option value="posture_priority">强姿态解析 φ</option>
+          <option value="suspected_ik" selected>疑似IK</option>
         </select>
       </label>
       <label>
@@ -85,7 +85,7 @@
             <h2 id="motion-title">机械臂与 TCP 全路径</h2>
           </div>
           <div class="legend compact">
-            <span><i class="swatch envelope"></i>当前参数计算包络</span>
+            <span><i class="swatch envelope"></i>四种IK共同交集</span>
             <span><i class="swatch excluded"></i>隔离区间</span>
             <span><i class="swatch walked"></i>已走</span>
             <span><i class="swatch remaining"></i>未走</span>
@@ -131,7 +131,7 @@
       <p>
         新硬件额定/最大转矩来自厂家表，红色虚线仅表示连续额定转矩；η=1理论推力由电机转矩、
         减速比和10 mm/rev导程换算，不等同供应商认证的电缸推力。未确认的综合效率、实际持续/峰值推力、
-        最大转矩持续时间及高速转矩包络不在页面显示，也不进入能力判定。正式路径与包络均按当前参数计算；58点资料仅为
+        最大转矩持续时间及高速转矩包络不在页面显示，也不进入能力判定。正式路径为四种IK在当前参数模型下的共同可达交集；58点资料仅为
         <code>unverified_reference</code>，不参与路径或正式图层；
         动力学已纳入Arm1两根68.5 kg、Arm2两根65.5 kg及Arm3一根45.5 kg电缸，并按两销轴几何中点点质量建模；
         电缸真实随行程质心、固有惯量与内部质量拆分仍待确认；
@@ -141,8 +141,8 @@
     </footer>
 
     <noscript>需要启用 JavaScript 才能播放本地动画。</noscript>
-    <script src="data.js?v=20260806-actuator-mass"></script>
+    <script src="data.js?v=20260810-1644-suspected-default"></script>
     <script src="model-lite.js"></script>
-    <script src="app.js?v=20260806-actuator-mass"></script>
+    <script src="app.js?v=20260810-1644-suspected-default"></script>
   </body>
 </html>

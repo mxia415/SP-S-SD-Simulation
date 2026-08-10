@@ -29,14 +29,22 @@
   };
   const RAD_TO_DEG = 180 / Math.PI;
   const SCREW_LEAD_M_PER_REV = 0.01;
-  const SHARED_CHART_SCALE = Object.freeze({
+  const ENVELOPE_DISPLAY_NAME = "四种IK共同几何可达交集";
+  const SUSPECTED_IK_DISCLAIMER = "疑似IK为Level D hybrid证据恢复方案，不代表已验证的原控制器或厂家算法";
+  const CHART_SCALE = Object.freeze({
+    torqueScaleMode: String(
+      DATA.chartScale?.torqueScaleMode
+        ?? "per_algorithm_scenario_arm_shared_across_hardware_sets",
+    ),
     torqueMin: Number(DATA.chartScale?.torqueMinNm ?? 0),
     torqueMax: Number(DATA.chartScale?.torqueMaxNm ?? 9),
+    torqueMaxByAlgorithmScenarioArm:
+      DATA.chartScale?.torqueMaxNmByAlgorithmScenarioArm ?? {},
     speedMin: Number(DATA.chartScale?.speedMinMmS ?? -120),
     speedMax: Number(DATA.chartScale?.speedMaxMmS ?? 120),
   });
   const state = {
-    algorithmKey: "posture_priority",
+    algorithmKey: "suspected_ik",
     scenarioKey: "xy200-z50",
     hardwareKey: "2",
     time: 0,
@@ -253,6 +261,17 @@
 
   function motorTorqueNm(forceN, armIndex) {
     return motorTorqueNmForHardware(forceN, armIndex, hardware());
+  }
+
+  function currentTorqueMaxima() {
+    const configured = CHART_SCALE.torqueMaxByAlgorithmScenarioArm
+      ?.[state.algorithmKey]?.[state.scenarioKey];
+    return [0, 1, 2].map((armIndex) => {
+      const value = Number(configured?.[armIndex]);
+      return Number.isFinite(value) && value > CHART_SCALE.torqueMin
+        ? value
+        : CHART_SCALE.torqueMax;
+    });
   }
 
   function currentParameterEnvelopePoints() {
@@ -584,6 +603,7 @@
     const rowGap = 10;
     const cellWidth = (target.width - left - right - columnGap) / 2;
     const rowHeight = (target.height - top - bottom - rowGap * 2) / 3;
+    const torqueMaxima = currentTorqueMaxima();
     chartLayouts = [];
 
     for (let armIndex = 0; armIndex < 3; armIndex += 1) {
@@ -603,10 +623,10 @@
         torqueValues[index] = torque;
         speedValues[index] = speed;
       }
-      const torqueMin = SHARED_CHART_SCALE.torqueMin;
-      const torqueMax = SHARED_CHART_SCALE.torqueMax;
-      const speedMin = SHARED_CHART_SCALE.speedMin;
-      const speedMax = SHARED_CHART_SCALE.speedMax;
+      const torqueMin = CHART_SCALE.torqueMin;
+      const torqueMax = torqueMaxima[armIndex];
+      const speedMin = CHART_SCALE.speedMin;
+      const speedMax = CHART_SCALE.speedMax;
 
       context.font = "600 10px 'DejaVu Sans', Arial, sans-serif";
       context.textAlign = "left";
@@ -630,10 +650,18 @@
 
       chartLayouts.push({ torqueArea, speedArea, torqueMin, torqueMax, speedMin, speedMax });
     }
-    elements.chartCanvas.dataset.torqueMin = String(SHARED_CHART_SCALE.torqueMin);
-    elements.chartCanvas.dataset.torqueMax = String(SHARED_CHART_SCALE.torqueMax);
-    elements.chartCanvas.dataset.speedMin = String(SHARED_CHART_SCALE.speedMin);
-    elements.chartCanvas.dataset.speedMax = String(SHARED_CHART_SCALE.speedMax);
+    elements.chartCanvas.dataset.torqueScaleMode = CHART_SCALE.torqueScaleMode;
+    elements.chartCanvas.dataset.torqueMin = String(CHART_SCALE.torqueMin);
+    torqueMaxima.forEach((value, armIndex) => {
+      elements.chartCanvas.dataset[`torqueMaxArm${armIndex + 1}`] = String(value);
+    });
+    elements.chartCanvas.dataset.speedMin = String(CHART_SCALE.speedMin);
+    elements.chartCanvas.dataset.speedMax = String(CHART_SCALE.speedMax);
+    elements.scaleOutput.textContent = (
+      "当前IK/工况逐臂量程（新旧硬件一致）："
+      + `|T轴| 0–${torqueMaxima.map((value) => value.toFixed(0)).join(" / 0–")} N·m；`
+      + `v缸 ${CHART_SCALE.speedMin.toFixed(0)}–+${CHART_SCALE.speedMax.toFixed(0)} mm/s。`
+    );
     context.fillStyle = COLORS.text;
     context.font = "9px 'DejaVu Sans', Arial, sans-serif";
     context.textAlign = "left";
@@ -748,27 +776,17 @@
       ...currentParameterEnvelopePoints().map((point) => point.z),
     );
     elements.pathLimitBadge.textContent = Number.isFinite(envelopeMaximumZ)
-      ? `计算包络 Z ${envelopeMaximumZ.toFixed(1)} mm`
-      : "待重建当前参数包络";
-    const controlDiagnostics = algorithm().controlDiagnostics;
-    const stepLimitOverrideCount = Object.values(
-      controlDiagnostics?.stepLimitOverrideCountByJoint || {},
-    ).reduce((sum, value) => sum + Number(value || 0), 0);
-    const overrideSummary = stepLimitOverrideCount > 0
-      ? `；门控空间步长偏好安全降级 ${stepLimitOverrideCount.toLocaleString("zh-CN")} 个关节步`
+      ? `${ENVELOPE_DISPLAY_NAME} Z ${envelopeMaximumZ.toFixed(1)} mm`
+      : `待重建${ENVELOPE_DISPLAY_NAME}`;
+    const provenanceSummary = state.algorithmKey === "suspected_ik"
+      ? `；${SUSPECTED_IK_DISCLAIMER}`
       : "";
     elements.dataSource.textContent = (
       `算法：${algorithm().label}；数据目录：${scenario().sourceDirectory}`
-      + `；几何：${DATA.geometrySource}${overrideSummary}`
+      + `；几何：${ENVELOPE_DISPLAY_NAME}${provenanceSummary}`
     );
-    elements.dataSource.classList.remove("load-error");
-    elements.dataSource.classList.toggle(
-      "control-override",
-      stepLimitOverrideCount > 0,
-    );
-    elements.dataSource.title = stepLimitOverrideCount > 0
-      ? "红字表示为保持连续 TCP、关节、电缸和固定连杆分支可行性，个别 Active DLS 空间步长偏好采用了明确记录的安全降级；物理硬限位仍已逐帧校验。"
-      : "";
+    elements.dataSource.classList.remove("load-error", "control-override");
+    elements.dataSource.title = "";
     buildChartBackground();
     paint();
   }
@@ -849,11 +867,6 @@
   resizeObserver.observe(elements.motionCanvas.parentElement);
   resizeObserver.observe(elements.chartCanvas.parentElement);
 
-  elements.scaleOutput.textContent = (
-    `${Object.keys(DATA.algorithms || {}).length}种算法统一量程：`
-    + `|T轴| ${SHARED_CHART_SCALE.torqueMin.toFixed(0)}–${SHARED_CHART_SCALE.torqueMax.toFixed(0)} N·m；`
-    + `v缸 ${SHARED_CHART_SCALE.speedMin.toFixed(0)}–+${SHARED_CHART_SCALE.speedMax.toFixed(0)} mm/s。`
-  );
   elements.algorithm.value = state.algorithmKey;
   elements.scenario.value = state.scenarioKey;
   elements.hardware.value = state.hardwareKey;
